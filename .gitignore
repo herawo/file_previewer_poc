@@ -1,0 +1,6 @@
+tgenv
+*.pyc
+*~
+.idea
+DATA
+preview_generator.egg-info/

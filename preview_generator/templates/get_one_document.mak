@@ -6,7 +6,7 @@
     <body>
         <table style = text-align:center;>
             <td>
-                <% url_prev = prev_page %>
+                <% url_prev = int(document_id) - 1 %>
                 <tr>
                     <a href="${tg.url('/documents/{doc_id}'.format(doc_id=url_prev))}">
                         <button type="button"> Previous </button>
@@ -21,7 +21,7 @@
                 </tr>
             </td>
             <td>
-                <% url_next = next_page %>
+                <% url_next = int(document_id) + 1 %>
                 <tr>
                      <a href="${tg.url('/documents/{doc_id}'.format(doc_id=url_next))}">
                          <button type="button"> Next </button>

@@ -5,8 +5,12 @@
 
     <body py:strip="True">
         <h2>Documents</h2>
-        <a href="${tg.url('/documents/1')}">
-            <button type="button"> Documents </button>
-        </a>
+
+        % for index in range(int(document_nb)):
+            <a href="${tg.url('/documents/{i}'.format(i=index))}">
+                <button type="button"> Documents ${index}</button>
+            </a>
+            </br>
+        % endfor
     </body>
 </html>

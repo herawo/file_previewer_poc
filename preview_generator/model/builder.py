@@ -236,15 +236,7 @@ class PdfPreviewBuilder(PreviewBuilder):
                     buffer = result.read(1024)
 
 
-
-
-
-class DocPreviewBuilder(PreviewBuilder):
-    def __init__(preview_root_folder_path):
-        print('New Preview Builder Doc')
-
-
-class OdtPreviewBuilder(PreviewBuilder):
+class OfficePreviewBuilder(PreviewBuilder):
     def __init__(preview_root_folder_path):
         print('New Preview Builder Odt')
 
@@ -258,18 +250,22 @@ class OdtPreviewBuilder(PreviewBuilder):
         except OSError:
             pass
 
-
-
         with open(document_path.format(d_id=document_id), 'rb') as odt:
 
-            if os.path.exists(flag_path):
-                time.sleep(11)
-                if os.path.exists(preview_path.format(d_id=document_id, p_id=document_id)):
-                    result = open(preview_path.format(d_id=document_id, p_id=document_id))
-                else:
-                    result = file_converter.odt_to_pdf(odt, document_id)
+            print(preview_path.format(d_id=document_id, p_id=document_id))
+            if os.path.exists(
+                    preview_path.format(d_id=document_id, p_id=document_id)+'.pdf'):
+                result = open(
+                    preview_path.format(d_id=document_id, p_id=document_id)+'.pdf', 'rb')
+
             else:
-                result = file_converter.odt_to_pdf(odt, document_id)  # BytesIO
+                if os.path.exists(flag_path.format(d_id=document_id)):
+                    time.sleep(11)
+                    self.build_pdf_preview(document_id, page_id, extension)
+
+                else:
+                    result = file_converter.office_to_pdf(odt, document_id)
+
             result2 = file_converter.pdf_to_jpeg(result, page_id)
             with open(
                     preview_path.format(
@@ -287,23 +283,38 @@ class OdtPreviewBuilder(PreviewBuilder):
         generate the large preview
         """
 
-
+        t1 = time.time()
+        print('t1 :', time.time() - t1)
 
         try:
             os.mkdir(cache_path.format(d_id=document_id)+'/')
         except OSError:
             pass
 
+        print(preview_path.format(d_id=document_id, p_id=document_id))
+
         with open(document_path.format(d_id=document_id), 'rb') as odt:
-            if os.path.exists(flag_path):
-                time.sleep(11)
-                if os.path.exists(preview_path.format(d_id=document_id, p_id=document_id)):
-                    result = open(preview_path.format(d_id=document_id, p_id=document_id))
-                else:
-                    result = file_converter.odt_to_pdf(odt, document_id)
+            print('t2 :', time.time() - t1)
+            if os.path.exists(
+                    preview_path.format(d_id=document_id, p_id=document_id)+'.pdf'):
+                print('t3 :', time.time() - t1)
+                result = open(
+                    preview_path.format(d_id=document_id, p_id=document_id)+'.pdf', 'rb')
+
             else:
-                result = file_converter.odt_to_pdf(odt, document_id)  # BytesIO
+                if os.path.exists(flag_path.format(d_id=document_id)):
+                    print('t4 :', time.time() - t1)
+                    time.sleep(11)
+                    self.build_pdf_preview(document_id, page_id, extension)
+                    print('t5 :', time.time() - t1)
+
+                else:
+                    print('t6 :', time.time() - t1)
+                    result = file_converter.office_to_pdf(odt, document_id)
+
+            print('t7 :', time.time() - t1)
             result2 = file_converter.pdf_to_jpeg(result, page_id, LARGE_PREVIEW_SIZE)
+            print('t8 :', time.time() - t1)
             with open(
                     preview_path.format(
                          d_id=document_id,
@@ -326,30 +337,29 @@ class OdtPreviewBuilder(PreviewBuilder):
         except OSError:
             pass
 
+        print(preview_path.format(d_id=document_id, p_id=document_id))
+
         with open(document_path.format(d_id=document_id), 'rb') as odt:
+            print('path ', preview_path.format(d_id=document_id, p_id=document_id))
 
-            print(os.listdir(cache_path.format(d_id=document_id)))
-            if os.path.exists(flag_path.format(d_id=document_id)):
-                if os.path.exists(preview_path.format(d_id=document_id, p_id=document_id)):
-                    result = open(preview_path.format(d_id=document_id, p_id=document_id))
+            if os.path.exists(
+                    preview_path.format(d_id=document_id, p_id=document_id)+'.pdf'):
+                result = open(
+                    preview_path.format(d_id=document_id, p_id=document_id)+'.pdf', 'rb')
 
-                else:
-                    time.sleep(11)
-                    result = file_converter.odt_to_pdf(odt, document_id)
             else:
-                if os.path.exists(preview_path.format(d_id=document_id, p_id=document_id)):
-                    result = open(preview_path.format(d_id=document_id, p_id=document_id))
+                if os.path.exists(flag_path.format(d_id=document_id)):
+                    time.sleep(11)
+                    self.build_pdf_preview(document_id, page_id, extension)
+
                 else:
-                    result = file_converter.odt_to_pdf(odt, document_id)  # BytesIO
+                    result = file_converter.office_to_pdf(odt, document_id)
 
             with open(preview_path.format(d_id=document_id, p_id=document_id) + extension, 'wb') as pdf:
                 buffer = result.read(1024)
                 while buffer:
                     pdf.write(buffer)
                     buffer = result.read(1024)
-
-
-
 
 
 class TextPreviewBuilder(PreviewBuilder):
@@ -397,19 +407,6 @@ class ZipPreviewBuilder(PreviewBuilder):
                     buffer = result.read(1024)
 
 
-
-    def exists_text_preview(self, doc_id: int, page_id: int):
-        """
-        return true if the cache file exists
-        """
-
-        my_file = preview_path.format(d_id=doc_id, p_id=page_id) + '.txt'
-        if os.path.exists(my_file):
-            return True
-        else:
-            return False
-
-
     def build_html_preview(self, document_id: int, page_id: int, extension='.html'):
         """
         generate the text preview
@@ -428,14 +425,3 @@ class ZipPreviewBuilder(PreviewBuilder):
                     jpeg.write(buffer)
                     buffer = result.read(1024)
 
-
-    def exists_html_preview(self, doc_id: int, page_id: int):
-        """
-        return true if the cache file exists
-        """
-
-        my_file = preview_path.format(d_id=doc_id, p_id=page_id) + '.html'
-        if os.path.exists(my_file):
-            return True
-        else:
-            return False

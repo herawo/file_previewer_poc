@@ -80,17 +80,12 @@ def gif_to_jpeg(gif: BytesIO, size=SMALL_PREVIEW_SIZE)->BytesIO:
 def pdf_to_jpeg(pdf: BytesIO, page_id, size=SMALL_PREVIEW_SIZE):
 
     print('convert pdf to jpeg of size ', size)
-
-    t1 = time.time()
     with WImage(file=pdf) as img:
         height, width = img.size
-        print(time.time() - t1)
         if height < width:
             breadth = height
         else:
             breadth = width
-        print(time.time()-t1)
-
         with WImage(
             width=breadth,
             height=breadth,
@@ -110,8 +105,11 @@ def pdf_to_jpeg(pdf: BytesIO, page_id, size=SMALL_PREVIEW_SIZE):
             output.seek(0, 0)
             return output
 
-def odt_to_pdf(odt: BytesIO, document_id)->BytesIO:
-    print('convert odt to pdf ')
+def ods_to_pdf(ods: BytesIO, document_id)->BytesIO:
+    a= 1
+
+def office_to_pdf(odt: BytesIO, document_id)->BytesIO:
+    print('convert office document to pdf ')
 
 
     file_name = str(uuid.uuid4())
@@ -122,18 +120,19 @@ def odt_to_pdf(odt: BytesIO, document_id)->BytesIO:
     except OSError:
         pass
 
-    with open(file_path + '.odt', 'wb') as odt_temp:
-        odt.seek(0, 0)
-        buffer = odt.read(1024)
-        while buffer:
-            odt_temp.write(buffer)
-            buffer = odt.read(1024)
-
-    if not os.path.exists(preview_path.format(d_id=document_id, p_id=document_id)):
+    if not os.path.exists(preview_path.format(d_id=document_id, p_id=document_id) + '.pdf'):
         print("REBUILD")
-        #TODO There's probably a cleaner way to convert odt to pdf
+
+        with open(file_path, 'wb') as odt_temp:
+            odt.seek(0, 0)
+            buffer = odt.read(1024)
+            while buffer:
+                odt_temp.write(buffer)
+                buffer = odt.read(1024)
+
+        #TODO There's probably a cleaner way to convert to pdf
         os.system('libreoffice --headless --convert-to pdf:writer_pdf_Export '
-                  + file_path + '.odt'
+                  + file_path
                   + ' --outdir ' + cache_path.format(d_id=document_id)
                   + ' -env:UserInstallation='
                     'file:///tmp/LibreOffice_Conversion_${USER}')
@@ -145,7 +144,7 @@ def odt_to_pdf(odt: BytesIO, document_id)->BytesIO:
         pass
 
     try:
-        os.remove(file_path + '.odt')
+        os.remove(file_path)
         os.rename(file_path + '.pdf', preview_path.format(d_id=document_id,
                                                           p_id=document_id) + '.pdf')
     except OSError:
@@ -156,11 +155,9 @@ def odt_to_pdf(odt: BytesIO, document_id)->BytesIO:
             d_id=document_id,
             p_id=document_id
     )+ '.pdf', 'rb') as pdf:
-        print(pdf.__class__)
         pdf.seek(0, 0)
         content_as_bytes = pdf.read()
         output = BytesIO(content_as_bytes)
-        # output.write(content_as_bytes)
         output.seek(0, 0)
 
         return output

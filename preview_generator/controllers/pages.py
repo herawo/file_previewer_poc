@@ -1,41 +1,39 @@
-import os
-
 import tg
-from tg import expose, RestController
+from routes import Mapper
+from tg import expose
 from tg import tmpl_context
-import zipfile
-
+from tgext.routes import RoutedController, route
 from preview_generator.model.preview import PreviewBuilderFactory
 
 __all__ = ['PagesController']
 
 
-class PagesController(RestController):
+class PagesController(RoutedController):
 
     def _before(self, *args, **kw):
         tmpl_context.project_name = 'preview_generator'
+
 
     @expose()
     def _default(self):
         return '<h2> Error Loading Page</h2>'
 
     @expose('preview_generator.templates.pages')
-    def get_all(self):
+    def previews_list(self, document_id: int):
         return dict(page='pages',
-                    document_id=tg.request.controller_state.routing_args.get('id_doc')
+                    document_id=document_id
                     )
 
     @expose('preview_generator.templates.get_one_page')
-    def get_one(self, id_page: int):
+    def single_preview(self, document_id: int, page_id: int):
         return dict(page='get_one_page',
-                    document_id=tg.request.controller_state.routing_args.get('id_doc'),
-                    page_id=id_page
+                    document_id=document_id,
+                    page_id=page_id
                     )
 
     @expose(content_type='image/jpeg')
-    def small(self, page_id: int):
-        print('Building small preview')
-        document_id = tg.request.controller_state.routing_args.get('id_doc')
+    def small(self, document_id: int, page_id: int):
+        print('Small')
         factory = PreviewBuilderFactory()
         mimetype = factory.get_document_mimetype(document_id)
         builder = factory.get_preview_builder(mimetype)
@@ -43,9 +41,8 @@ class PagesController(RestController):
         return builder.get_small_preview(document_id, page_id)
 
     @expose(content_type='image/jpeg')
-    def large(self, page_id: int):
+    def large(self, document_id: int, page_id: int):
         print("Large")
-        document_id = tg.request.controller_state.routing_args.get('id_doc')
         factory = PreviewBuilderFactory()
         mimetype = factory.get_document_mimetype(document_id)
         builder = factory.get_preview_builder(mimetype)
@@ -53,9 +50,8 @@ class PagesController(RestController):
         return builder.get_large_preview(document_id, page_id)
 
     @expose(content_type='text/plain')
-    def text(self, page_id: int):
+    def text(self, document_id: int, page_id: int):
         print("Texte")
-        document_id = tg.request.controller_state.routing_args.get('id_doc')
         factory = PreviewBuilderFactory()
         mimetype = factory.get_document_mimetype(document_id)
         builder = factory.get_preview_builder(mimetype)
@@ -63,9 +59,8 @@ class PagesController(RestController):
         return builder.get_text_preview(document_id, page_id)
 
     @expose(content_type='application/pdf')
-    def pdf(self, page_id: int):
+    def pdf(self, document_id: int, page_id: int):
         print("PDF")
-        document_id = tg.request.controller_state.routing_args.get('id_doc')
         factory = PreviewBuilderFactory()
         mimetype = factory.get_document_mimetype(document_id)
         builder = factory.get_preview_builder(mimetype)
@@ -73,10 +68,8 @@ class PagesController(RestController):
 
 
     @expose('text/html')
-    def html(self, page_id: int):
-
+    def html(self, document_id: int, page_id: int):
         print("HTML")
-        document_id = tg.request.controller_state.routing_args.get('id_doc')
         rootpath = tg.config.get('cache_root_folder_path')
         path = '{rp}/preview_generator/public/img/cache/{d_id}/{p_id}.html' \
             .format(rp=rootpath, d_id=document_id, p_id=page_id)

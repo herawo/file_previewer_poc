@@ -3,7 +3,7 @@
         <title>Image Preview - Documents</title>
     </head>
 
-    <body py:strip="True">
+    <body class="centre" py:strip="True">
         <h2>Documents</h2>
 
         % for index in range(int(document_nb)):

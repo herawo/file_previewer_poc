@@ -4,9 +4,12 @@
     </head>
 
     <body>
-        <h2>Algoo</h2>
-        <a href="${tg.url('/documents')}">
-            <button type="button"> Previews </button>
-        </a>
+        <div class="centre">
+            <h2>PREVIEW GENERATOR</h2>
+            <a href="${tg.url('/documents')}">
+                <button type="button"> Previews </button>
+            </a>
+        </div>
     </body>
 </html>
+

@@ -1,18 +1,15 @@
 import tg
-from tg import expose, RestController
+from tg import expose
 from tg import tmpl_context
 import os
-
-from preview_generator.controllers.pages import PagesController
+from tgext.routes import RoutedController, route
 
 rootpath = tg.config.get('cache_root_folder_path')
 documents_path = rootpath + '/preview_generator/public/img'
 
 __all__ = ['DocumentsController']
 
-class DocumentsController(RestController):
-
-    pages = PagesController()
+class DocumentsController(RoutedController):
 
     def _before(self, *args, **kw):
         tmpl_context.project_name = "preview_generator"
@@ -22,9 +19,10 @@ class DocumentsController(RestController):
         return "<h2> Error Loading Documents</h2>"
 
     @expose('preview_generator.templates.documents')
-    def get_all(self):
+    @route('')
+    def documents_list(self):
         files = os.listdir(documents_path)
-        file_count = len(files) -1
+        file_count = len(files) - 1
         print(file_count)
 
         return dict(
@@ -33,13 +31,13 @@ class DocumentsController(RestController):
                     )
 
     @expose('preview_generator.templates.get_one_document')
-    def get_one(self, id_doc):
+    def single_document(self, document_id):
 
-        tg.tmpl_context.doc_id = id_doc
+        tg.tmpl_context.doc_id = document_id
 
         return dict(
             page='get_one_document',
-            document_id=id_doc,
+            document_id=document_id,
         )
 
 

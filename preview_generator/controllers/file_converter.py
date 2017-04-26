@@ -8,7 +8,7 @@ import tg
 from PIL import Image
 from wand.color import Color
 from wand.image import Image as WImage
-import time
+
 
 SMALL_PREVIEW_SIZE = (256, 256)
 LARGE_PREVIEW_SIZE = (1024, 1024)
@@ -77,7 +77,7 @@ def gif_to_jpeg(gif: BytesIO, size=SMALL_PREVIEW_SIZE)->BytesIO:
         output.seek(0, 0)
         return output
 
-def pdf_to_jpeg(pdf: BytesIO, page_id, size=SMALL_PREVIEW_SIZE):
+def pdf_to_jpeg(pdf: BytesIO, size=SMALL_PREVIEW_SIZE):
 
     print('convert pdf to jpeg of size ', size)
     with WImage(file=pdf) as img:
@@ -92,7 +92,7 @@ def pdf_to_jpeg(pdf: BytesIO, page_id, size=SMALL_PREVIEW_SIZE):
             background=Color('white')
         ) as image:
             image.composite(
-                img.sequence[int(page_id)],
+                img,
                 top=0,
                 left=0
             )

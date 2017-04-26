@@ -1,9 +1,12 @@
 import tg
-from routes import Mapper
 from tg import expose
 from tg import tmpl_context
-from tgext.routes import RoutedController, route
-from preview_generator.model.preview import PreviewBuilderFactory
+from tgext.routes import RoutedController
+from preview_generator.model.factory import PreviewBuilderFactory
+
+rootpath = tg.config.get('cache_root_folder_path') +'/preview_generator/public/img'
+document_path = rootpath + '/{d_id}'
+cache_path = rootpath + '/cache/{d_id}'
 
 __all__ = ['PagesController']
 
@@ -26,9 +29,16 @@ class PagesController(RoutedController):
 
     @expose('preview_generator.templates.get_one_page')
     def single_preview(self, document_id: int, page_id: int):
+        factory = PreviewBuilderFactory()
+        mimetype = factory.get_document_mimetype(document_id)
+        builder = factory.get_preview_builder(mimetype)
+        page_nb = builder.get_page_number(document_id)
+        print(page_nb)
+
         return dict(page='get_one_page',
+                    page_nb=page_nb,
                     document_id=document_id,
-                    page_id=page_id
+                    page_id=page_id,
                     )
 
     @expose(content_type='image/jpeg')

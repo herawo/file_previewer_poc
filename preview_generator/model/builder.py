@@ -3,8 +3,12 @@ import os
 import tg
 import time
 
+from io import BytesIO
+
 from preview_generator.controllers import file_converter
-from preview_generator.model.preview import PreviewBuilder
+from preview_generator.model.preview import PreviewBuilder, ImagePreviewBuilder, \
+    OnePagePreviewBuilder
+from PyPDF2 import PdfFileReader, PdfFileWriter
 
 SMALL_PREVIEW_SIZE = (256, 256)
 LARGE_PREVIEW_SIZE = (1024, 1024)
@@ -16,7 +20,7 @@ preview_path = cache_path + '/{p_id}' # == /preview_generator/public/img/cache/{
 flag_path = cache_path + '/flag' # == /preview_generator/public/img/cache/{d_id}/flag
 
 
-class JpegPreviewBuilder(PreviewBuilder):
+class JpegPreviewBuilder(ImagePreviewBuilder):
     def __init__(preview_root_folder_path):
         print("New PNG preview builder")
 
@@ -64,7 +68,7 @@ class JpegPreviewBuilder(PreviewBuilder):
                     buffer = result.read(1024)
 
 
-class PngPreviewBuilder(PreviewBuilder):
+class PngPreviewBuilder(ImagePreviewBuilder):
     def __init__(preview_root_folder_path):
         print("New PNG preview builder")
 
@@ -112,7 +116,7 @@ class PngPreviewBuilder(PreviewBuilder):
                     buffer = result.read(1024)
 
 
-class GifPreviewBuilder(PreviewBuilder):
+class GifPreviewBuilder(ImagePreviewBuilder):
     def __init__(preview_root_folder_path):
         print('New Preview Builder Gif')
 
@@ -153,7 +157,7 @@ class GifPreviewBuilder(PreviewBuilder):
                     buffer = result.read(1024)
 
 
-class BmpPreviewBuilder(PreviewBuilder):
+class BmpPreviewBuilder(ImagePreviewBuilder):
     def __init__(preview_root_folder_path):
         print('New Preview Builder Bmp')
 
@@ -208,7 +212,13 @@ class PdfPreviewBuilder(PreviewBuilder):
             pass
 
         with open(document_path.format(d_id=document_id), 'rb') as pdf:
-            result = file_converter.pdf_to_jpeg(pdf, page_id)  # BytesIO
+            input_pdf = PdfFileReader(pdf)
+            output_pdf = PdfFileWriter()
+            output_pdf.addPage(input_pdf.getPage(int(page_id)))
+            output_stream = BytesIO()
+            output_pdf.write(output_stream)
+            output_stream.seek(0, 0)
+            result = file_converter.pdf_to_jpeg(output_stream)
 
             with open(preview_path.format(d_id=document_id, p_id=page_id) + extension, 'wb') as jpeg:
                 buffer = result.read(1024)
@@ -227,7 +237,13 @@ class PdfPreviewBuilder(PreviewBuilder):
             pass
 
         with open(document_path.format(d_id=document_id), 'rb') as pdf:
-            result = file_converter.pdf_to_jpeg(pdf, page_id, LARGE_PREVIEW_SIZE)  # BytesIO
+            input_pdf = PdfFileReader(pdf)
+            output_pdf = PdfFileWriter()
+            output_pdf.addPage(input_pdf.getPage(int(page_id)))
+            output_stream = BytesIO()
+            output_pdf.write(output_stream)
+            output_stream.seek(0, 0)
+            result = file_converter.pdf_to_jpeg(output_stream, LARGE_PREVIEW_SIZE)
 
             with open(preview_path.format(d_id=document_id, p_id=page_id) + extension, 'wb') as jpeg:
                 buffer = result.read(1024)
@@ -235,6 +251,22 @@ class PdfPreviewBuilder(PreviewBuilder):
                     jpeg.write(buffer)
                     buffer = result.read(1024)
 
+    def get_page_number(self, document_id):
+
+        try:
+            os.mkdir(cache_path.format(d_id=document_id)+'/')
+        except OSError:
+            pass
+
+        if not os.path.exists(cache_path.format(d_id=document_id) + '/page_nb'):
+            with open(cache_path.format(d_id=document_id) + '/page_nb', 'w') as count:
+                count.seek(0, 0)
+                with open(document_path.format(d_id=document_id), 'rb') as doc:
+                    inputpdf = PdfFileReader(doc)
+                    count.write(str(inputpdf.numPages))
+        with open(cache_path.format(d_id=document_id) + '/page_nb', 'r') as count:
+            count.seek(0, 0)
+            return count.read()
 
 class OfficePreviewBuilder(PreviewBuilder):
     def __init__(preview_root_folder_path):
@@ -260,13 +292,20 @@ class OfficePreviewBuilder(PreviewBuilder):
 
             else:
                 if os.path.exists(flag_path.format(d_id=document_id)):
-                    time.sleep(11)
+                    time.sleep(2)
                     self.build_pdf_preview(document_id, page_id, extension)
 
                 else:
                     result = file_converter.office_to_pdf(odt, document_id)
 
-            result2 = file_converter.pdf_to_jpeg(result, page_id)
+            input_pdf = PdfFileReader(result)
+            output_pdf = PdfFileWriter()
+            output_pdf.addPage(input_pdf.getPage(int(page_id)))
+            output_stream = BytesIO()
+            output_pdf.write(output_stream)
+            output_stream.seek(0, 0)
+            result2 = file_converter.pdf_to_jpeg(output_stream)
+
             with open(
                     preview_path.format(
                          d_id=document_id,
@@ -313,7 +352,13 @@ class OfficePreviewBuilder(PreviewBuilder):
                     result = file_converter.office_to_pdf(odt, document_id)
 
             print('t7 :', time.time() - t1)
-            result2 = file_converter.pdf_to_jpeg(result, page_id, LARGE_PREVIEW_SIZE)
+            input_pdf = PdfFileReader(result)
+            output_pdf = PdfFileWriter()
+            output_pdf.addPage(input_pdf.getPage(int(page_id)))
+            output_stream = BytesIO()
+            output_pdf.write(output_stream)
+            output_stream.seek(0, 0)
+            result2 = file_converter.pdf_to_jpeg(output_stream, LARGE_PREVIEW_SIZE)
             print('t8 :', time.time() - t1)
             with open(
                     preview_path.format(
@@ -325,6 +370,37 @@ class OfficePreviewBuilder(PreviewBuilder):
                 while buffer:
                     jpeg.write(buffer)
                     buffer = result2.read(1024)
+
+    def get_page_number(self, document_id):
+
+        try:
+            os.mkdir(cache_path.format(d_id=document_id)+'/')
+        except OSError:
+            pass
+
+        if not os.path.exists(cache_path.format(d_id=document_id) + '/page_nb'):
+            self.build_pdf_preview(document_id, 0)
+
+        with open(cache_path.format(d_id=document_id) + '/page_nb', 'w') as count:
+            count.seek(0, 0)
+            if not os.path.exists(preview_path.format(
+                    d_id=document_id,
+                    p_id=document_id
+            )
+            + '.pdf'):
+                self.build_pdf_preview(document_id, 0)
+
+            with open(preview_path.format(d_id=document_id,
+                                          p_id=document_id) + '.pdf',
+                      'rb') as doc:
+                inputpdf = PdfFileReader(doc)
+                count.write(str(inputpdf.numPages))
+        with open(cache_path.format(d_id=document_id) + '/page_nb', 'r') as count:
+            count.seek(0, 0)
+            return count.read()
+
+
+
 
 
     def build_pdf_preview(self, document_id: int, page_id: int, extension='.pdf'):
@@ -362,7 +438,7 @@ class OfficePreviewBuilder(PreviewBuilder):
                     buffer = result.read(1024)
 
 
-class TextPreviewBuilder(PreviewBuilder):
+class TextPreviewBuilder(OnePagePreviewBuilder):
     def __init__(preview_root_folder_path):
         print('New Preview Builder Text')
 
@@ -384,7 +460,7 @@ class TextPreviewBuilder(PreviewBuilder):
                     jpeg.write(buffer)
                     buffer = result.read(1024)
 
-class ZipPreviewBuilder(PreviewBuilder):
+class ZipPreviewBuilder(OnePagePreviewBuilder):
     def __init__(preview_root_folder_path):
         print('New Preview Builder Zip')
 

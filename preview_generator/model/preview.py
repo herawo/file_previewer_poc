@@ -1,6 +1,6 @@
 import os
 
-import magic
+
 import tg
 from io import BytesIO
 
@@ -14,15 +14,12 @@ flag_path = cache_path + '/flag' # == /preview_generator/public/img/cache/{d_id}
 
 class PreviewBuilder(object):
 
-
-
     def __init__(self):
         print('New Preview Builder')
 
-    def load_document(self, id):
-        """
-        ???
-        """
+    def get_page_number(self, document_id):
+        raise 'Number of pages not supported for this kind of Preview Builder.'\
+              'Preview builder must implements a get_page_number method'
 
     def build_small_preview(self, document_id: int, page_id: int, extension='.jpg'):
         """
@@ -57,6 +54,7 @@ class PreviewBuilder(object):
     def get_small_preview(self, document_id, page_id, extension='.jpg') -> BytesIO:
         print('Loading Document {d_id} page {p_id}'.format(d_id=document_id, p_id=page_id))
         path = preview_path.format(d_id=document_id, p_id=page_id) + extension
+
         if not self.exists_small_preview(document_id, page_id):
             self.build_small_preview(document_id, page_id, extension)
 
@@ -178,113 +176,19 @@ class PreviewBuilder(object):
         else:
             return False
 
-class PreviewBuilderFactory(object):
-
-    def __init__(self):
-        print('new preview builder factory')
-
-    def get_preview_builder(self, mimetype: str):
-
-        from preview_generator.model.builder import \
-            JpegPreviewBuilder, \
-            PngPreviewBuilder, \
-            GifPreviewBuilder, \
-            BmpPreviewBuilder, \
-            PdfPreviewBuilder, \
-            TextPreviewBuilder, \
-            OfficePreviewBuilder, \
-            ZipPreviewBuilder
-
-        compress = ['application/x-compressed',
-                    'application/x-zip-compressed',
-                    'application/zip',
-                    'multipart/x-zip',
-                    'application/x-tar'
-                    ]
-
-        office = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                  'application/vnd.oasis.opendocument.text',
-                  'application/vnd.oasis.opendocument.spreadsheet',
-                  'application/msword',
-                  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                  'application/vnd.openxmlformats-officedocument.wordprocessingml.template',
-                  'application/vnd.ms-word.document.macroEnabled.12',
-                  'application/vnd.ms-excel',
-                  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                  'application/vnd.openxmlformats-officedocument.spreadsheetml.template',
-                  'application/vnd.ms-excel.sheet.macroEnabled.12',
-                  'application/vnd.ms-excel.template.macroEnabled.12',
-                  'application/vnd.ms-excel.addin.macroEnabled.12',
-                  'application/vnd.ms-excel.sheet.binary.macroEnabled.12',
-                  'application/vnd.ms-powerpoint',
-                  'application/vnd.openxmlformats-fficedocument.presentationml.presentation',
-                  'application/vnd.openxmlformats-officedocument.presentationml.template',
-                  'application/vnd.openxmlformats-officedocument.presentationml.slideshow',
-                  'application/vnd.ms-powerpoint.addin.macroEnabled.12',
-                  'application/vnd.ms-powerpoint.presentation.macroEnabled.12',
-                  'application/vnd.ms-powerpoint.template.macroEnabled.12',
-                  'application/vnd.ms-powerpoint.slideshow.macroEnabled.12',
-                  'application/vnd.oasis.opendocument.spreadsheet',
-                  'application/vnd.oasis.opendocument.text',
-                  ' application/vnd.oasis.opendocument.text-template',
-                  'application/vnd.oasis.opendocument.text-web',
-                  'application/vnd.oasis.opendocument.text-master',
-                  'application/vnd.oasis.opendocument.graphics',
-                  'application/vnd.oasis.opendocument.graphics-template',
-                  'application/vnd.oasis.opendocument.presentation',
-                  'application/vnd.oasis.opendocument.presentation-template',
-                  'application/vnd.oasis.opendocument.spreadsheet-template',
-                  'application/vnd.oasis.opendocument.chart',
-                  'application/vnd.oasis.opendocument.chart',
-                  'application/vnd.oasis.opendocument.formula',
-                  'application/vnd.oasis.opendocument.database',
-                  'application/vnd.oasis.opendocument.image',
-                  'application/vnd.openofficeorg.extension'
-                 ]
-
-        if 'image/jpeg' == mimetype:
-            return JpegPreviewBuilder()
-
-        elif 'image/png' == mimetype:
-            return PngPreviewBuilder()
-
-        elif 'image/gif' == mimetype:
-            return GifPreviewBuilder()
-
-        elif 'image/x-ms-bmp' == mimetype:
-            return BmpPreviewBuilder()
-
-        elif 'application/pdf' == mimetype:
-            return PdfPreviewBuilder()
-
-        elif 'text/plain' == mimetype:
-            return TextPreviewBuilder()
-
-        elif mimetype in office:
-            return OfficePreviewBuilder()
-
-        elif mimetype in compress:
-            return ZipPreviewBuilder()
+class OnePagePreviewBuilder(PreviewBuilder):
+    '''
+    Generic preview handler for single page document
+    '''
+    def get_page_number(self, document_id):
+        return 1
 
 
+class ImagePreviewBuilder(OnePagePreviewBuilder):
+    '''
+    Generic preview handler for an Image (except multi-pages images)
+    '''
 
-
-
-
-        else:
-            return PreviewBuilder()
-
-    def get_document_file_path(self, id: int) -> str:
-        """ return the absolute path of the file """
-
-
-    def get_document_mimetype(self, id) -> str:
-        """ 
-        return the mimetype of the file. see python module mimetype
-        """
-        mime = magic.Magic(mime=True)
-        str = mime.from_file('preview_generator/public/img/{id}'.format(id=id))
-        return str
 
 
 

@@ -10,9 +10,13 @@
 
 # This is just a work-around for a Python2.7 issue causing
 # interpreter crash at exit when trying to log an info message.
+
+from distutils.core import setup
+
 try:
     import logging
     import multiprocessing
+    import os
 except:
     pass
 
@@ -25,6 +29,13 @@ except ImportError:
     from ez_setup import use_setuptools
     use_setuptools()
     from setuptools import setup, find_packages
+
+here = os.path.abspath(os.path.dirname(__file__))
+
+try:
+    documentation = open(os.path.join(here, 'doc.html')).read()
+except IOError:
+    documentation = ''
 
 testpkgs = [
     'WebTest >= 1.2.3',
@@ -53,11 +64,19 @@ if py_version != (3, 2):
 
 setup(
     name='preview_generator',
-    version='0.1',
-    description='',
-    author='',
-    author_email='',
-    url='',
+    # this must be the same as the name above
+    version='0.11',
+    description='Generation of file previews',
+    long_description=documentation,
+    author='Algoo',
+    author_email='clemalex20@gmail.com',
+    url='https://github.com/herawo/file_previewer_poc',
+    # use the URL to the github repo
+    download_url='https://github.com/herawo/file_previewer_poc/archive/0.1.tar.gz',
+    # I'll explain this in a second
+    keywords=['preview', 'preview_generator', 'thumbnail'],
+    # arbitrary keywords
+    classifiers=[],
     packages=find_packages(exclude=['ez_setup']),
     install_requires=install_requires,
     include_package_data=True,

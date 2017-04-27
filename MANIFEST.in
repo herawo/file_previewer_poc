@@ -1,4 +1,6 @@
-recursive-include preview_generator/public *
+recursive-include preview_generator/public/css
+recursive-include preview_generator/public/font
+recursive-include preview_generator/public/javascript
 include preview_generator/public/favicon.ico
 recursive-include preview_generator/i18n *
 recursive-include preview_generator/templates *

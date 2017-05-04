@@ -1,21 +1,21 @@
-from preview_generator.model.preview import PreviewBuilder
 import magic
+
+from preview_generator.model.preview.bmp_preview import BmpPreviewBuilder
+from preview_generator.model.preview.generic_preview import PreviewBuilder
+from preview_generator.model.preview.gif_preview import GifPreviewBuilder
+from preview_generator.model.preview.jpeg_preview import JpegPreviewBuilder
+from preview_generator.model.preview.odt_preview import OfficePreviewBuilder
+from preview_generator.model.preview.pdf_preview import PdfPreviewBuilder
+from preview_generator.model.preview.png_preview import PngPreviewBuilder
+from preview_generator.model.preview.text_preview import TextPreviewBuilder
+from preview_generator.model.preview.zip_preview import ZipPreviewBuilder
+
 
 class PreviewBuilderFactory(object):
     def __init__(self):
-        print('new preview builder factory')
+        pass
 
     def get_preview_builder(self, mimetype: str):
-
-        from preview_generator.model.builder import \
-            JpegPreviewBuilder, \
-            PngPreviewBuilder, \
-            GifPreviewBuilder, \
-            BmpPreviewBuilder, \
-            PdfPreviewBuilder, \
-            TextPreviewBuilder, \
-            OfficePreviewBuilder, \
-            ZipPreviewBuilder
 
         compress = ['application/x-compressed',
                     'application/x-zip-compressed',
@@ -95,11 +95,11 @@ class PreviewBuilderFactory(object):
     def get_document_file_path(self, id: int) -> str:
         """ return the absolute path of the file """
 
-    def get_document_mimetype(self, id) -> str:
+    def get_document_mimetype(self, file_path) -> str:
         """ 
         return the mimetype of the file. see python module mimetype
         """
         mime = magic.Magic(mime=True)
-        str = mime.from_file('preview_generator/public/img/{id}'.format(id=id))
+        str = mime.from_file(file_path)
         return str
 

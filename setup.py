@@ -33,7 +33,7 @@ except ImportError:
 here = os.path.abspath(os.path.dirname(__file__))
 
 try:
-    documentation = open(os.path.join(here, 'doc.html')).read()
+    documentation = open(os.path.join(here, 'doc.md')).read()
 except IOError:
     documentation = ''
 
@@ -65,7 +65,7 @@ if py_version != (3, 2):
 setup(
     name='preview_generator',
     # this must be the same as the name above
-    version='0.11',
+    version='0.13',
     description='Generation of file previews',
     long_description=documentation,
     author='Algoo',

@@ -13,11 +13,11 @@
         <table width="100%">
             <tr>
 
-             <td width="20%"><img src="${tg.url('/documents/{d_id}/pages/{p_id}/small'.format(d_id=document_id, p_id=page_id))}" alt="Small not supported" style="width:300px;height:300px;"/></td>
-             <td width="20%"><img src="${tg.url('/documents/{d_id}/pages/{p_id}/large'.format(d_id=document_id, p_id=page_id))}" alt="Large not supported" style="width:300px;height:300px;"/></td>
-             <td width="20%"><iframe src="${tg.url('/documents/{d_id}/pages/{p_id}/pdf'.format(d_id=document_id, p_id=document_id))}" alt="PDF not supported" style="width:300px;height:300px;"></iframe></td>
-             <td width="20%"><iframe src="${tg.url('/documents/{d_id}/pages/{p_id}/text'.format(d_id=document_id, p_id=page_id))}" alt="Text not supported" style="width:300px;height:300px;"></iframe></td>
-             <td width="20%"><iframe src="${tg.url('/documents/{d_id}/pages/{p_id}/html'.format(d_id=document_id, p_id=page_id))}" alt="HTML not supported" style="width:300px;height:300px;"></iframe></td>
+             <td width="20%" height="100%"><img src="${tg.url('/documents/{d_id}/pages/{p_id}/small'.format(d_id=document_id, p_id=page_id))}" alt="Small not supported" style="width:100%;height:100%;"/></td>
+             <td width="20%" height="100%"><img src="${tg.url('/documents/{d_id}/pages/{p_id}/large'.format(d_id=document_id, p_id=page_id))}" alt="Large not supported" style="width:100%;height:100%;"/></td>
+             <td width="20%" height="100%"><iframe src="${tg.url('/documents/{d_id}/pages/{p_id}/pdf'.format(d_id=document_id, p_id=document_id))}" alt="PDF not supported" style="width:100%;height:100%;"></iframe></td>
+             <td width="20%" height="100%"><iframe src="${tg.url('/documents/{d_id}/pages/{p_id}/text'.format(d_id=document_id, p_id=page_id))}" alt="Text not supported" style="width:100%;height:100%;"></iframe></td>
+             <td width="20%" height="100%"><iframe src="${tg.url('/documents/{d_id}/pages/{p_id}/html'.format(d_id=document_id, p_id=page_id))}" alt="HTML not supported" style="width:100%;height:100%;"></iframe></td>
 
             </tr>
 

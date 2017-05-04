@@ -1,28 +1,15 @@
 import os
-import uuid
+
 import zipfile
 from builtins import print
 from io import BytesIO
-
-import tg
 from PIL import Image
 from wand.color import Color
 from wand.image import Image as WImage
 
 
-SMALL_PREVIEW_SIZE = (256, 256)
-LARGE_PREVIEW_SIZE = (1024, 1024)
 
-rootpath = tg.config.get('cache_root_folder_path') +'/preview_generator/public/img'
-document_path = rootpath + '/{d_id}'
-cache_path = rootpath + '/cache/{d_id}'
-preview_path = cache_path + '/{p_id}'
-flag_path = cache_path + '/flag' # == /preview_generator/public/img/cache/{d_id}/flag
-
-
-
-
-def png_to_jpeg(png: BytesIO, size=SMALL_PREVIEW_SIZE) ->BytesIO:
+def image_to_jpeg_pillow(png: BytesIO, size=(256, 256)) ->BytesIO:
     print('Converting png to jpeg of size ', size)
     temp = Image.new('RGB', size, (255, 255, 255))
     with Image.open(png) as image:
@@ -38,8 +25,14 @@ def png_to_jpeg(png: BytesIO, size=SMALL_PREVIEW_SIZE) ->BytesIO:
         return output
 
 
-def jpeg_to_jpeg(jpeg: BytesIO, size=SMALL_PREVIEW_SIZE):
-    print('Converting jpeg to jpeg of size ', size)
+def image_to_jpeg_wand(jpeg: BytesIO, size=(256, 256)):
+    '''
+    for jpeg, gif and bmp
+    :param jpeg: 
+    :param size: 
+    :return: 
+    '''
+    print('Converting an image to jpeg of size ', size)
 
     with WImage(file=jpeg) as jpeg2:
         jpeg_cp = WImage(jpeg2)
@@ -51,33 +44,7 @@ def jpeg_to_jpeg(jpeg: BytesIO, size=SMALL_PREVIEW_SIZE):
         output.seek(0, 0)
         return output
 
-
-def bmp_to_jpeg(bmp: BytesIO, size=SMALL_PREVIEW_SIZE)->BytesIO:
-    print('Converting gif to jpeg of size ', size)
-    with WImage(file=bmp) as jpeg2:
-        bmp_cp = WImage(jpeg2)
-        bmp_cp.resize(size[0], size[1])
-
-        content_as_bytes = bmp_cp.make_blob('jpeg')
-        output = BytesIO()
-        output.write(content_as_bytes)
-        output.seek(0, 0)
-        return output
-
-def gif_to_jpeg(gif: BytesIO, size=SMALL_PREVIEW_SIZE)->BytesIO:
-    print('Converting gif to jpeg of size ', size)
-
-    with WImage(file=gif) as jpeg2:
-        gif_cp = WImage(jpeg2)
-        gif_cp.resize(size[0], size[1])
-
-        content_as_bytes = gif_cp.make_blob('jpeg')
-        output = BytesIO()
-        output.write(content_as_bytes)
-        output.seek(0, 0)
-        return output
-
-def pdf_to_jpeg(pdf: BytesIO, size=SMALL_PREVIEW_SIZE):
+def pdf_to_jpeg(pdf: BytesIO, size=(256,256)):
 
     print('convert pdf to jpeg of size ', size)
     with WImage(file=pdf) as img:
@@ -105,56 +72,64 @@ def pdf_to_jpeg(pdf: BytesIO, size=SMALL_PREVIEW_SIZE):
             output.seek(0, 0)
             return output
 
-def ods_to_pdf(ods: BytesIO, document_id)->BytesIO:
-    a= 1
 
-def office_to_pdf(odt: BytesIO, document_id)->BytesIO:
+def office_to_pdf(odt: BytesIO, cache_path, file_name)->BytesIO:
     print('convert office document to pdf ')
 
-
-    file_name = str(uuid.uuid4())
-    file_path = cache_path.format(d_id=document_id) + '/' + file_name
-
     try:
-        os.mkdir(flag_path.format(d_id=document_id))
+        os.mkdir(cache_path + file_name + '_flag')
     except OSError:
         pass
 
-    if not os.path.exists(preview_path.format(d_id=document_id, p_id=document_id) + '.pdf'):
-        print("REBUILD")
+    if not os.path.exists('{path}{file_name}'.format(
+                        path=cache_path,
+                        file_name=file_name)
+    ):
 
-        with open(file_path, 'wb') as odt_temp:
+        with open('{path}{file_name}'.format(
+                        path=cache_path,
+                        file_name=file_name), 'wb') \
+        as odt_temp:
             odt.seek(0, 0)
             buffer = odt.read(1024)
             while buffer:
                 odt_temp.write(buffer)
                 buffer = odt.read(1024)
 
+        try:
+            os.makedirs(cache_path)
+        except OSError:
+            pass
+
         #TODO There's probably a cleaner way to convert to pdf
         os.system('libreoffice --headless --convert-to pdf:writer_pdf_Export '
-                  + file_path
-                  + ' --outdir ' + cache_path.format(d_id=document_id)
-                  + ' -env:UserInstallation='
-                    'file:///tmp/LibreOffice_Conversion_${USER}')
+                     + '{path}{extension}'.format(
+                                                path=cache_path,
+                                                extension=file_name
+                                                 )
+                     + ' --outdir ' + cache_path
+                     + ' -env:UserInstallation='
+                     + 'file:///tmp/LibreOffice_Conversion_${USER}')
 
     try:
-        os.removedirs(flag_path.format(d_id=document_id))
+        os.removedirs(cache_path + file_name + '_flag')
     except OSError:
-        print('ERROR 1')
         pass
+
 
     try:
-        os.remove(file_path)
-        os.rename(file_path + '.pdf', preview_path.format(d_id=document_id,
-                                                          p_id=document_id) + '.pdf')
+        os.remove('{path}{file_name}'.format(
+            path=cache_path,
+            file_name=file_name
+            )
+        )
     except OSError:
-        print('ERROR 2')
         pass
 
-    with open(preview_path.format(
-            d_id=document_id,
-            p_id=document_id
-    )+ '.pdf', 'rb') as pdf:
+    with open('{path}{file_name}.pdf'.format(
+        path=cache_path,
+        file_name=file_name
+    ), 'rb') as pdf:
         pdf.seek(0, 0)
         content_as_bytes = pdf.read()
         output = BytesIO(content_as_bytes)

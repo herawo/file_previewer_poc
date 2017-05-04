@@ -3,10 +3,11 @@ from tg import expose
 from tg import tmpl_context
 from tgext.routes import RoutedController
 from preview_generator.model.factory import PreviewBuilderFactory
+from preview_generator.model.manager import PreviewManager
 
 rootpath = tg.config.get('cache_root_folder_path') +'/preview_generator/public/img'
 document_path = rootpath + '/{d_id}'
-cache_path = rootpath + '/cache/{d_id}'
+cache_path = rootpath + '/cache/'
 
 __all__ = ['PagesController']
 
@@ -29,11 +30,11 @@ class PagesController(RoutedController):
 
     @expose('preview_generator.templates.get_one_page')
     def single_preview(self, document_id: int, page_id: int):
-        factory = PreviewBuilderFactory()
-        mimetype = factory.get_document_mimetype(document_id)
-        builder = factory.get_preview_builder(mimetype)
-        page_nb = builder.get_page_number(document_id)
-        print(page_nb)
+        preview_manager = PreviewManager(path=cache_path)
+        page_nb = preview_manager.get_nb_page(
+            file_path=document_path.format(d_id=document_id),
+            cache_path=cache_path
+        )
 
         return dict(page='get_one_page',
                     page_nb=page_nb,
@@ -43,57 +44,47 @@ class PagesController(RoutedController):
 
     @expose(content_type='image/jpeg')
     def small(self, document_id: int, page_id: int):
-        print('Small')
-        factory = PreviewBuilderFactory()
-        mimetype = factory.get_document_mimetype(document_id)
-        builder = factory.get_preview_builder(mimetype)
-        print('Document mimetype is', mimetype)
-        return builder.get_small_preview(document_id, page_id)
+        print('Affichage du small')
+        preview_manager = PreviewManager(path=cache_path)
+        return preview_manager.get_jpeg_preview(
+            file_path=document_path.format(d_id=document_id),
+            page=page_id,
+            height=256,
+            width=256
+        )
 
     @expose(content_type='image/jpeg')
     def large(self, document_id: int, page_id: int):
-        print("Large")
-        factory = PreviewBuilderFactory()
-        mimetype = factory.get_document_mimetype(document_id)
-        builder = factory.get_preview_builder(mimetype)
-        print('Document mimetype is', mimetype)
-        return builder.get_large_preview(document_id, page_id)
-
+        print('Affichage du large')
+        preview_manager = PreviewManager(path=cache_path)
+        return preview_manager.get_jpeg_preview(
+            file_path=document_path.format(d_id=document_id),
+            page=page_id,
+            height=1024
+        )
     @expose(content_type='text/plain')
     def text(self, document_id: int, page_id: int):
-        print("Texte")
-        factory = PreviewBuilderFactory()
-        mimetype = factory.get_document_mimetype(document_id)
-        builder = factory.get_preview_builder(mimetype)
-        print('Document mimetype is', mimetype)
-        return builder.get_text_preview(document_id, page_id)
+        print('Affichage du text')
+        preview_manager = PreviewManager(path=cache_path)
+        return preview_manager.get_text_preview(
+            file_path=document_path.format(d_id=document_id),
+            page=page_id
+        )
 
     @expose(content_type='application/pdf')
     def pdf(self, document_id: int, page_id: int):
-        print("PDF")
-        factory = PreviewBuilderFactory()
-        mimetype = factory.get_document_mimetype(document_id)
-        builder = factory.get_preview_builder(mimetype)
-        return builder.get_pdf_preview(document_id, page_id)
+        print('Affichage du pdf')
+        preview_manager = PreviewManager(path=cache_path)
+        return preview_manager.get_pdf_preview(
+            file_path=document_path.format(d_id=document_id)
+        )
 
 
     @expose('text/html')
     def html(self, document_id: int, page_id: int):
-        print("HTML")
-        rootpath = tg.config.get('cache_root_folder_path')
-        path = '{rp}/preview_generator/public/img/cache/{d_id}/{p_id}.html' \
-            .format(rp=rootpath, d_id=document_id, p_id=page_id)
-        factory = PreviewBuilderFactory()
-        mimetype = factory.get_document_mimetype(document_id)
-        builder = factory.get_preview_builder(mimetype)
-        print(mimetype)
-        print(builder.__class__.__name__)
-
-        if not builder.exists_html_preview(document_id, page_id):
-            builder.build_html_preview(document_id, page_id)
-
-        if builder.exists_html_preview(document_id, page_id):
-            with open(path, 'rb') as handler:
-                return handler.read()
-
-        return None
+        print('Affichage du html')
+        preview_manager = PreviewManager(path=cache_path)
+        return preview_manager.get_html_preview(
+            file_path=document_path.format(d_id=document_id),
+            page=page_id
+        )

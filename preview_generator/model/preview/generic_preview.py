@@ -2,6 +2,9 @@ import os
 from io import BytesIO
 import hashlib
 
+from PyPDF2 import PdfFileReader
+from PyPDF2 import PdfFileWriter
+
 from preview_generator.model.factory import PreviewBuilderFactory
 
 
@@ -94,7 +97,7 @@ class PreviewBuilder(object, metaclass=PreviewBuilderMeta):
 
         return None
 
-    def get_pdf_preview(self, file_path: str, cache_path, extension='.pdf', force: bool=False) -> BytesIO:
+    def get_pdf_preview(self, file_path: str, cache_path, page='full', extension='.pdf', force: bool=False) -> BytesIO:
         """ 
         return file content from the cache
         """
@@ -112,15 +115,32 @@ class PreviewBuilder(object, metaclass=PreviewBuilderMeta):
                 path=cache_path + file_name,
                 extension=extension
         ):
+            if page =='full':
+                with open(
+                        '{path}{file_name}.pdf'.format(
+                            path=cache_path,
+                            file_name=file_name
+                        ),
+                        'rb'
+                ) as handler:
+                    return handler.read()
+            else:
+                with open(
+                        '{path}{file_name}.pdf'.format(
+                            path=cache_path,
+                            file_name=file_name,
+                        ),
+                        'rb'
+                ) as handler:
+                    input_pdf = PdfFileReader(handler)
+                    output_pdf = PdfFileWriter()
+                    print(page)
+                    output_pdf.addPage(input_pdf.getPage(int(page)))
 
-            with open(
-                    '{path}{file_name}.pdf'.format(
-                        path=cache_path,
-                        file_name=file_name,
-                    ),
-                    'rb'
-            ) as handler:
-                return handler.read()
+                    output_stream = BytesIO()
+                    output_pdf.write(output_stream)
+                    output_stream.seek(0, 0)
+                    return output_stream
 
         return None
 

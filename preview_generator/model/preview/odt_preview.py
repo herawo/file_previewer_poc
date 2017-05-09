@@ -160,10 +160,12 @@ class OfficePreviewBuilder(PreviewBuilder):
 
             file_name = self.get_file_hash(file_path)
 
-            if os.path.exists('{path}_0_.pdf'.format(
-                        path=cache_path + file_name)):
-                result = open('{path}_0_.pdf'.format(
-                        path=cache_path + file_name), 'rb')
+            if os.path.exists('{path}.pdf'.format(
+                        path=cache_path + file_name,
+            )):
+                result = open('{path}.pdf'.format(
+                        path=cache_path + file_name,
+                ), 'rb')
 
             else:
                 if os.path.exists(cache_path + file_name + '_flag'):
@@ -171,10 +173,6 @@ class OfficePreviewBuilder(PreviewBuilder):
                     self.build_pdf_preview(file_path, cache_path, extension)
                 else:
                     result = file_converter.office_to_pdf(odt, cache_path, file_name)
-                    # os.remove('{cache_path}{file_name}'.format(
-                    #     cache_path=cache_path,
-                    #     file_name=file_name,
-                    # ))
 
             with open(cache_path + file_name + extension, 'wb') as pdf:
                 buffer = result.read(1024)

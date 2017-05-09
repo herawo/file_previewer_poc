@@ -16,7 +16,7 @@ class PngPreviewBuilder(ImagePreviewBuilder):
         # except OSError:
         #     pass
 
-        file_name = self.get_file_hash(file_path,size)
+        file_name = self.get_file_hash(file_path, size)
         with open(file_path, 'rb') as img:
             result = file_converter.image_to_jpeg_pillow(img, size)
             with open(

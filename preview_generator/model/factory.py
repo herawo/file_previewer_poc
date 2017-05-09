@@ -18,8 +18,6 @@ class PreviewBuilderFactory(object):
 
         return None
 
-    def get_document_file_path(self, id: int) -> str:
-        """ return the absolute path of the file """
 
     def get_document_mimetype(self, file_path) -> str:
         """ 

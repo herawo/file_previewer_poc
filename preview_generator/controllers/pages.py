@@ -2,7 +2,6 @@ import tg
 from tg import expose
 from tg import tmpl_context
 from tgext.routes import RoutedController
-from preview_generator.model.factory import PreviewBuilderFactory
 from preview_generator.model.manager import PreviewManager
 
 rootpath = tg.config.get('cache_root_folder_path') +'/preview_generator/public/img'
@@ -61,6 +60,7 @@ class PagesController(RoutedController):
             file_path=document_path.format(d_id=document_id),
             page=page_id,
             height=1024,
+            width=1024
         )
     @expose(content_type='text/plain')
     def text(self, document_id: int, page_id: int):
@@ -68,8 +68,7 @@ class PagesController(RoutedController):
         preview_manager = PreviewManager(path=cache_path)
         return preview_manager.get_text_preview(
             file_path=document_path.format(d_id=document_id),
-            page=page_id,
-            extension='.txt'
+            page=page_id
         )
 
     @expose(content_type='application/pdf')
@@ -77,7 +76,8 @@ class PagesController(RoutedController):
         print('Affichage du pdf')
         preview_manager = PreviewManager(path=cache_path)
         return preview_manager.get_pdf_preview(
-            file_path=document_path.format(d_id=document_id)
+            file_path=document_path.format(d_id=document_id),
+            page=page_id
         )
 
 

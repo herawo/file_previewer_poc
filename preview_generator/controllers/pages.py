@@ -50,7 +50,7 @@ class PagesController(RoutedController):
             file_path=document_path.format(d_id=document_id),
             page=page_id,
             height=256,
-            width=256
+            width=256,
         )
 
     @expose(content_type='image/jpeg')
@@ -60,7 +60,7 @@ class PagesController(RoutedController):
         return preview_manager.get_jpeg_preview(
             file_path=document_path.format(d_id=document_id),
             page=page_id,
-            height=1024
+            height=1024,
         )
     @expose(content_type='text/plain')
     def text(self, document_id: int, page_id: int):
@@ -68,7 +68,8 @@ class PagesController(RoutedController):
         preview_manager = PreviewManager(path=cache_path)
         return preview_manager.get_text_preview(
             file_path=document_path.format(d_id=document_id),
-            page=page_id
+            page=page_id,
+            extension='.txt'
         )
 
     @expose(content_type='application/pdf')

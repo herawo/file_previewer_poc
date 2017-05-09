@@ -2,10 +2,26 @@ import os
 from io import BytesIO
 import hashlib
 
-class PreviewBuilder(object):
+from preview_generator.model.factory import PreviewBuilderFactory
+
+
+class PreviewBuilderMeta(type):
+    def __new__(mcs, *args, **kwargs):
+        cls = super().__new__(mcs, *args, **kwargs)
+        cls.register()
+        return cls
+
+
+class PreviewBuilder(object, metaclass=PreviewBuilderMeta):
+
+    mimetype=[]
 
     def __init__(self):
         print('New Preview Builder')
+
+    @classmethod
+    def get_mimetypes_supported(cls):
+        return cls.mimetype
 
     def get_file_hash(self, file_path, size=None):
         if size == None:
@@ -29,36 +45,36 @@ class PreviewBuilder(object):
         """
         generate the jpg preview
         """
-        pass
+        raise Exception("Not implemented for this kind of document")
 
     def build_pdf_preview(self, file_path, cache_path, extension='.pdf'):
         """
         generate the jpeg preview
         """
-        pass
+        raise Exception("Not implemented for this kind of document")
 
     def build_html_preview(self, file_path, cache_path, page_id: int, extension='.html'):
         """
         generate the html preview
         """
-        pass
+        raise Exception("Not implemented for this kind of document")
 
     def build_json_preview(self, file_path, cache_path, page_id: int, extension='.json'):
         """
         generate the json preview
         """
-        pass
+        raise Exception("Not implemented for this kind of document")
 
     def build_text_preview(self, file_path, cache_path, page_id: int, extension='.txt'):
         """ 
         return file content from the cache
         """
-        pass
+        raise Exception("Not implemented for this kind of document")
 
-    def get_jpeg_preview(self, file_path: str, page_id, cache_path, extension='.jpeg', size=(256,256)):
+    def get_jpeg_preview(self, file_path: str, cache_path, page_id, extension='.jpeg', size=(256,256), force: bool=False):
 
         file_name = self.get_file_hash(file_path, size)
-        if not self.exists_preview(cache_path + file_name, page_id, extension):
+        if not self.exists_preview(cache_path + file_name, page_id, extension) or force:
             self.build_jpeg_preview(
                 file_path=file_path,
                 cache_path=cache_path,
@@ -67,27 +83,25 @@ class PreviewBuilder(object):
                 size=size
             )
         if self.exists_preview(cache_path + file_name, page_id, extension):
-            with open(
-                    '{path}{file_name}_{page_id}_{extension}'.format(
-                        path=cache_path,
-                        file_name=file_name,
-                        page_id=page_id,
-                        extension=extension
-                    ),
-                    'rb'
-            ) as handler:
+            path_to_preview = '{path}{file_name}_{page_id}_{extension}'.format(
+                    path=cache_path,
+                    file_name=file_name,
+                    page_id=page_id,
+                    extension=extension
+                )
+            with open(path_to_preview, 'rb') as handler:
                 return handler.read()
 
         return None
 
-    def get_pdf_preview(self, file_path: str, cache_path, extension='.pdf') -> BytesIO:
+    def get_pdf_preview(self, file_path: str, cache_path, extension='.pdf', force: bool=False) -> BytesIO:
         """ 
         return file content from the cache
         """
         file_name = self.get_file_hash(file_path)
         if not self.exists_preview(
                 path=cache_path + file_name,
-                extension=extension):
+                extension=extension) or force:
             self.build_pdf_preview(
                 file_path=file_path,
                 cache_path=cache_path,
@@ -110,12 +124,12 @@ class PreviewBuilder(object):
 
         return None
 
-    def get_html_preview(self, file_path: str, cache_path, page_id: int, extension='.html'):
+    def get_html_preview(self, file_path: str, cache_path, page_id: int, extension='.html', force: bool=False):
         """ 
         return file content from the cache
         """
         file_name = self.get_file_hash(file_path)
-        if not self.exists_preview(cache_path + file_name, page_id, extension):
+        if not self.exists_preview(cache_path + file_name, page_id, extension) or force:
             self.build_html_preview(
                 file_path=file_path,
                 cache_path=cache_path,
@@ -124,9 +138,8 @@ class PreviewBuilder(object):
             )
         if self.exists_preview(cache_path + file_name, page_id, extension):
             with open(
-                    '{path}_{page_id}_{extension}'.format(
+                    '{path}{extension}'.format(
                         path=cache_path + file_name,
-                        page_id=page_id,
                         extension=extension
                     ),
                     'rb'
@@ -135,29 +148,28 @@ class PreviewBuilder(object):
 
         return None
 
-    def get_json_preview(self, doc_id: int, page_id: int):
+    def get_json_preview(self, doc_id: int, page_id: int, force: bool=False):
         """ 
         return file content from the cache
         """
         return None
 
-    def get_text_preview(self, file_path: str, cache_path, page_id: int, extension='.txt') -> BytesIO:
+    def get_text_preview(self, file_path: str, cache_path, page_id: int, extension='.txt', force: bool=False) -> BytesIO:
         """ 
         return file content from the cache
         """
         file_name = self.get_file_hash(file_path)
-        if not self.exists_preview(cache_path + file_name, page_id, extension):
+        if not self.exists_preview(path=cache_path + file_name, extension=extension) or force:
             self.build_text_preview(
                 file_path=file_path,
                 cache_path=cache_path,
                 page_id=page_id,
                 extension=extension
             )
-        if self.exists_preview(cache_path + file_name, page_id, extension):
+        if self.exists_preview(path=cache_path + file_name, extension=extension):
             with open(
-                    '{path}_{page_id}_{extension}'.format(
+                    '{path}{extension}'.format(
                         path=cache_path + file_name,
-                        page_id=page_id,
                         extension=extension
                     ),
                     'rb'
@@ -182,16 +194,14 @@ class PreviewBuilder(object):
                 extension=extension
             )
 
-        print(full_path)
         if os.path.exists(full_path):
             return True
         else:
             return False
 
-
-
-    def register(self):
-        pass
+    @classmethod
+    def register(cls):
+        PreviewBuilderFactory.get_instance().register_builder(cls)
 
 
 class OnePagePreviewBuilder(PreviewBuilder):
@@ -201,11 +211,59 @@ class OnePagePreviewBuilder(PreviewBuilder):
     def get_page_number(self, file_path, cache_path):
         return 1
 
+    def exists_preview(self, path, page_id=None, extension=''):
+        """
+        return true if the cache file exists
+        """
+        full_path = '{path}{extension}'.format(
+            path=path,
+            extension=extension
+        )
+        if os.path.exists(full_path):
+            return True
+        else:
+            return False
+
+    def get_jpeg_preview(self, file_path: str, cache_path, page_id, extension='.jpeg', size=(256,256), force: bool=False):
+
+        file_name = self.get_file_hash(file_path, size)
+        if (not self.exists_preview(cache_path + file_name, page_id, extension)) or force:
+            self.build_jpeg_preview(
+                file_path=file_path,
+                cache_path=cache_path,
+                page_id=page_id,
+                extension=extension,
+                size=size
+            )
+        if self.exists_preview(cache_path + file_name, page_id, extension):
+            path_to_preview = '{path}{file_name}{extension}'.format(
+                    path=cache_path,
+                    file_name=file_name,
+                    extension=extension
+                )
+            with open(path_to_preview, 'rb') as handler:
+                return handler.read()
+
+        return None
+
 
 class ImagePreviewBuilder(OnePagePreviewBuilder):
     '''
     Generic preview handler for an Image (except multi-pages images)
     '''
+
+    def get_file_hash(self, file_path, size=(256,256)):
+
+        file_name = '{fn}-{fh}x{fw}'.format(
+            fn=os.path.basename(file_path),
+            fh=str(size[0]),
+            fw=str(size[1]),
+        )
+
+        file_hash = hashlib.md5(file_path.encode('utf-8')).hexdigest()
+        return '{fn}-{fh}'.format(fn=file_name, fh=file_hash)
+
+
 
 
 

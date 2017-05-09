@@ -9,7 +9,7 @@ from wand.image import Image as WImage
 
 
 
-def image_to_jpeg_pillow(png: BytesIO, size=(256, 256)) ->BytesIO:
+def image_to_jpeg_pillow(png, size=(256, 256)) ->BytesIO:
     print('Converting png to jpeg of size ', size)
     temp = Image.new('RGB', size, (255, 255, 255))
     with Image.open(png) as image:
@@ -25,7 +25,7 @@ def image_to_jpeg_pillow(png: BytesIO, size=(256, 256)) ->BytesIO:
         return output
 
 
-def image_to_jpeg_wand(jpeg: BytesIO, size=(256, 256)):
+def image_to_jpeg_wand(jpeg, size=(256, 256)):
     '''
     for jpeg, gif and bmp
     :param jpeg: 
@@ -44,7 +44,7 @@ def image_to_jpeg_wand(jpeg: BytesIO, size=(256, 256)):
         output.seek(0, 0)
         return output
 
-def pdf_to_jpeg(pdf: BytesIO, size=(256,256)):
+def pdf_to_jpeg(pdf, size=(256,256)):
 
     print('convert pdf to jpeg of size ', size)
     with WImage(file=pdf) as img:
@@ -73,7 +73,7 @@ def pdf_to_jpeg(pdf: BytesIO, size=(256,256)):
             return output
 
 
-def office_to_pdf(odt: BytesIO, cache_path, file_name)->BytesIO:
+def office_to_pdf(odt, cache_path, file_name):
     print('convert office document to pdf ')
 
     try:
@@ -137,10 +137,10 @@ def office_to_pdf(odt: BytesIO, cache_path, file_name)->BytesIO:
 
         return output
 
-def txt_to_txt(text: BytesIO)->BytesIO:
+def txt_to_txt(text):
     return text
 
-def zip_to_txt(zip: BytesIO)->BytesIO:
+def zip_to_txt(zip):
 
     zz = zipfile.ZipFile(zip)
     output = BytesIO()
@@ -151,7 +151,7 @@ def zip_to_txt(zip: BytesIO)->BytesIO:
     output.seek(0, 0)
     return output
 
-def zip_to_html(zip: BytesIO)->BytesIO:
+def zip_to_html(zip):
     zz = zipfile.ZipFile(zip)
     output = BytesIO()
     output.write(str.encode('<p><ul>'))
@@ -168,8 +168,8 @@ def zip_to_html(zip: BytesIO)->BytesIO:
     return output
 
 
-def zip_to_json(zip: BytesIO)->BytesIO:
+def zip_to_json(zip)->BytesIO:
     a = 1
 
-def html_to_html(html: BytesIO)->BytesIO:
+def html_to_html(html)->BytesIO:
     a = 1

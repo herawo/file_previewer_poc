@@ -10,6 +10,8 @@ from preview_generator.model.preview.generic_preview import PreviewBuilder
 
 class PdfPreviewBuilder(PreviewBuilder):
 
+    mimetype = ['application/pdf']
+
     def build_jpeg_preview(self, file_path, cache_path, page_id: int, extension='.jpg', size=(256,256)):
         """
         generate the pdf small preview

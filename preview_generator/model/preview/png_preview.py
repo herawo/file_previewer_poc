@@ -4,6 +4,8 @@ from preview_generator.model.preview.generic_preview import ImagePreviewBuilder
 
 class PngPreviewBuilder(ImagePreviewBuilder):
 
+    mimetype = ['image/png']
+
     def build_jpeg_preview(self, file_path, cache_path, page_id, extension='.jpeg', size=(256,256)):
         """
         generate the jpg preview
@@ -18,9 +20,8 @@ class PngPreviewBuilder(ImagePreviewBuilder):
         with open(file_path, 'rb') as img:
             result = file_converter.image_to_jpeg_pillow(img, size)
             with open(
-                    '{path}_{page_id}_{extension}'.format(
+                    '{path}{extension}'.format(
                         path=cache_path + file_name,
-                        page_id=page_id,
                         extension=extension
                     ),
                     'wb'
